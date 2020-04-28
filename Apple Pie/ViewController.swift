@@ -9,12 +9,77 @@
 import UIKit
 
 class ViewController: UIViewController {
+    var listOfWords = ["apple", "google"]
+    let incorrectMovesAllowed = 7
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Do any additional setup after loading the view.
+    var totalWins = 0 {
+        didSet {
+            newRound()
+        }
     }
 
+    var totalLosses = 0 {
+        didSet {
+            newRound()
+        }
+    }
+
+    var currenctGame: Game!
+
+    @IBOutlet weak var treeImageView: UIImageView!
+    @IBOutlet weak var correctWordLabel: UILabel!
+    @IBOutlet weak var scoreLabel: UILabel!
+    @IBOutlet var letterButtons: [UIButton]!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        newRound()
+    }
+
+    @IBAction func buttonTapped(_ sender: UIButton) {
+        sender.isEnabled = false
+        let letterString = sender.title(for: .normal)!
+        let letter = Character(letterString.lowercased())
+        currenctGame.playerGuessed(letter: letter)
+        updateGameState()
+    }
+
+    func newRound() {
+        if !listOfWords.isEmpty {
+            let newWord = listOfWords.removeFirst()
+            currenctGame = Game(word: newWord, incorrectMovesRemaining: incorrectMovesAllowed, guessedLetters: [])
+            enableLetterButtons(true)
+            updateUI()
+        } else {
+            enableLetterButtons(false)
+        }
+    }
+
+    func enableLetterButtons(_ enable: Bool) {
+        for button in letterButtons {
+            button.isEnabled = enable
+        }
+    }
+
+    func updateUI() {
+        var letters = [String]()
+        for letter in currenctGame.formattedWord {
+            letters.append(String(letter))
+        }
+        correctWordLabel.text = letters.joined(separator: " ")
+        scoreLabel.text = "Wins: \(totalWins), Losses: \(totalLosses)"
+        treeImageView.image = UIImage(named: "Tree \(currenctGame.incorrectMovesRemaining)")
+    }
+
+    func updateGameState() {
+        if currenctGame.incorrectMovesRemaining == 0 {
+            totalLosses += 1
+        } else if currenctGame.word == currenctGame.formattedWord {
+            totalWins += 1
+        } else {
+            updateUI()
+        }
+    }
 
 }
 
